@@ -1,0 +1,152 @@
+---
+title: "Consultas SPARQL - Explotación Semántica de Datos 2024/2025"
+subtitle: "Master en Bioinformática, Universidad de Murcia"
+author: "Jose Francisco Costa Rubio (jf.costarubio@um.es)"
+date: "17/05/2025"
+output:
+  html_document:
+    df_print: paged
+    highlight: kate
+    number_sections: yes
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Este documento contiene las consultas SPARQL al endpoint de blazegraph listas para ser lanzadas. El primer paso es cargar la librería y conectarnos al endpoint correspondiente. En este caso, mi puerto asignado para blazegraph es 3034. 
+
+```{r , message =FALSE}
+library(SPARQL)
+library(data.table)
+endpoint <- "http://dayhoff.inf.um.es:3034/blazegraph/namespace/kb/sparql"
+```
+
+A continuación se definen y preparan las consultas. 
+
+# Recuperar todas las enfermedades de la ontología y sus genes y proteínas relacionadas, junto con sus etiquetas. 
+```{r}
+query1 <- "
+PREFIX glyco: <http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?enfermedadlabel ?enfermedad  ?proteinlabel ?protein  ?genelabel ?gene 
+WHERE {
+  ?gene rdf:type glyco:Gene .
+  ?protein rdf:type ?anyType .
+  ?gene obo:RO_0002205 ?protein .
+  ?enfermedad obo:RO_0002201 ?protein .
+  ?enfermedad rdfs:label ?enfermedadlabel .
+  ?protein rdfs:label ?proteinlabel .
+  ?gene rdfs:label ?genelabel .
+}
+"
+query_result1<- SPARQL(endpoint,query1) 
+data.table((query_result1$results))
+```
+
+# Recuperar las enzimas relacionadas con las enfermedades de afectación cardiaca.
+
+```{r}
+query2 <- "
+PREFIX glyco: <http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT  ?enzimalabel ?enzima    
+WHERE {
+  ?enfermedad obo:RO_0004026 glyco:Heart .
+  ?enfermedad obo:RO_0002201 ?enzima .
+  ?enzima rdfs:label ?enzimalabel .
+  ?enzima rdf:type glyco:Enzyme
+}
+
+"
+query_result2<- SPARQL(endpoint,query2) 
+data.table((query_result2$results))
+```
+
+# Recuperar las enfermedades causadas por modificación de una enzima, con su acceso a uniprot (URI externa).
+
+```{r}
+query3<-"
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX glyco: <http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT ?enfermedadlabel ?enfermedad  ?protein ?uniprotURI
+WHERE {
+  ?enfermedad rdf:type glyco:GSD .
+  ?protein rdf:type glyco:Enzyme .
+  ?enfermedad obo:RO_0002201 ?protein .
+  ?enfermedad rdfs:label ?enfermedadlabel .
+  ?protein owl:sameAs ?uniprotURI .
+}
+"
+query_result3<- SPARQL(endpoint,query3) 
+data.table((query_result3$results))
+```
+
+# Recuperar aquellas GSD (y su URI externa) que NO sean causadas por una enzima. 
+
+
+```{r}
+query4<-"
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX glyco: <http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+
+SELECT DISTINCT ?enfermedadlabel ?enfermedad  ?enfermedadURI
+WHERE {
+  ?enfermedad rdf:type glyco:GSD ;
+           obo:RO_0002201 ?protein .
+  ?protein rdf:type ?type .
+  ?type rdfs:subClassOf glyco:Protein .
+  ?enfermedad rdfs:label ?enfermedadlabel .
+  ?enfermedad owl:sameAs ?enfermedadURI .
+  FILTER NOT EXISTS { ?protein rdf:type glyco:Enzyme }
+}
+"
+query_result4<- SPARQL(endpoint,query4) 
+data.table((query_result4$results))
+```
+
+
+# Recuperar qué genes están relacionados con GSD de afectación sanguínea Y ósea.
+
+```{r}
+query5<-"
+PREFIX glyco: <http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?genlabel ?gen ?enfermedadlabel ?enfermedad 
+WHERE {
+  ?gen rdf:type glyco:Gene .
+  ?protein rdf:type ?anyType .
+  ?gen obo:RO_0002205 ?protein .
+  ?enfermedad obo:RO_0002201 ?protein .
+  ?enfermedad obo:RO_0004026 glyco:Blood .
+  ?enfermedad obo:RO_0004026 glyco:Bone .
+  ?gen rdfs:label ?genlabel .
+  ?enfermedad rdfs:label ?enfermedadlabel .
+  }
+"
+query_result5<- SPARQL(endpoint,query5) 
+data.table((query_result5$results))
+```
+
+
+
+
+
