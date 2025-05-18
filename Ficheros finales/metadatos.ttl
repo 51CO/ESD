@@ -1,0 +1,43 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sd: <http://www.w3.org/ns/sparql-service-description#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix cc: <http://creativecommons.org/ns#> .
+
+<http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease/> a dcat:Dataset ;
+    rdfs:label "Glycogen Storage Diseases" ;
+    foaf:primaryTopic "Glycogen Storage Diseases" ;
+    dct:creator <http://dayhoff.inf.um.es/people/josefrancisco> ;
+    dct:license <http://creativecommons.org/licenses/MIT/> ;
+    dcat:distribution <http://dayhoff.inf.um.es/data/distribution/gsd.nq> ,
+                      <http://dayhoff.inf.um.es/sparql> ;
+    sd:namedGraph <http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease> ;
+    dct:issued "2025-05-16"^^xsd:date .
+
+<http://dayhoff.inf.um.es/people/josefrancisco> a foaf:Person ;
+    foaf:name "Jose Francisco Costa" ;
+    foaf:mbox <mailto:jf.costarubio@um.es> .
+
+<http://creativecommons.org/licenses/MIT/> a cc:License ; 
+    cc:permits cc:Distribution, cc:Reproduction, cc:DerivativeWorks ;
+    cc:licenseClass <http://creativecommons.org/license/software> ;
+    cc:requires cc:Notice ;
+    cc:legalcode <http://opensource.org/licenses/mit-license.php> .
+
+<http://dayhoff.inf.um.es/data/distribution/gsd.nq> a dcat:Distribution ;
+    dcat:downloadURL <http://localhost/GSDontology.nq> ;			
+    dct:format <http://publications.europa.eu/resource/authority/file-type/NQ> ;
+    dct:license <http://creativecommons.org/licenses/by/4.0/> .
+
+<http://dayhoff.inf.um.es/sparql> a dcat:Distribution ; 
+    dcat:accessURL <http://localhost:3034/blazegraph/namespace/um/sparql> ;
+    dct:license <http://creativecommons.org/licenses/by/4.0/> .
+
+<http://dayhoff.inf.um.es/ontologies/GlycogenStorageDisease/> a sd:NamedGraph ; 
+    rdfs:label "Glycogen Storage Disease Graph" ;
+    dct:description "Glycogen Storage Disease of clinical interest and information about their related genes, proteins and affection sites" ;
+    dct:creator "Jose Francisco Costa" .
+
